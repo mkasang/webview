@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -31,30 +32,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final WebViewController controller = WebViewController();
+  WebViewController? controller;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      controller
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onProgress: (int progress) {},
-            onPageStarted: (String url) {},
-            onPageFinished: (String url) {},
-            onNavigationRequest: (NavigationRequest request) {
-              if (request.url
-                  .startsWith('https://v1.udps.applipourtous.cd/login')) {
-                return NavigationDecision.prevent;
-              }
-              return NavigationDecision.navigate;
-            },
-          ),
-        )
-        ..loadRequest(Uri.parse('https://v1.udps.applipourtous.cd/login'));
-    });
+    controller = WebViewController()
+      ..setJavaScriptMode(
+        JavaScriptMode.unrestricted,
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {},
+          onPageStarted: (String url) {
+            log("The Started Page:$url");
+          },
+          onPageFinished: (String url) {
+            log("The Finished Page : $url");
+          },
+          onWebResourceError: (WebResourceError erroe) {
+            log("Ther is some Erro Loading The Page");
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            if (request.url.contains("udps")) {
+              log("Navigation is not valid");
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(
+        Uri.parse("http://10.10.0.238:8000/login"),
+      );
   }
 
   @override
@@ -64,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Stack(
           children: [
             WebViewWidget(
-              controller: controller,
+              controller: controller!,
             ),
           ],
         ),
